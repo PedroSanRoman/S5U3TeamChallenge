@@ -1,50 +1,51 @@
 const fetchJoke = document.getElementById('fetchJoke');
 const jokeList = document.getElementById('jokeList');
-const ENDPOINT = 'https://api.chucknorris.io/jokes/random';
-let numero = 0;
+const borrar = document.getElementById('Borrar')
 
-console.log(localStorage)
-
-function cargarChistes () {
-    numero++
-    const datos = localStorage.getItem(`joke${numero}`);
-    jokeList.innerHTML += `<li>${datos}</li>`
-
-}
-/*
-function cargarChistes (chisteGuardado)  {
-
-    const listaChiste = [];
-    listaChiste.push(chisteGuardado)
-   
-    listaChiste.forEach( (joke) =>
-        jokeList.innerHTML += `<li>${joke}</li>`   
-    )
-    console.log(listaChiste); 
-
-     
-}*/
-cargarChistes ()
-
-fetchJoke.addEventListener('click', () => {
-    return fetch(ENDPOINT)
-    .then((response) => {
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
+function fetchChiste () {
+    fetch ('https://api.chucknorris.io/jokes/random')
+    .then(response => {
+        if (!response.ok) { 
+            throw new Error("Error al obtener el chiste");
         }
-        return response.json();
+        return response.json(); 
     })
     .then(data => {
-        numero++
-        localStorage.setItem( `joke${numero}`, JSON.stringify(data.value));
-        
-        const chiste = localStorage.getItem(`joke${numero}`) || '';
-        
-        const chisteGuardado = JSON.parse(chiste);
-        cargarChistes (chisteGuardado)
-        console.log('chisteGuardado:',chisteGuardado);
-        
-       jokeList.innerHTML += `<li>${chiste}</li>` 
+        const chiste = data.value;
+        chistePagina (chiste);
+        chisteStorage (chiste);   
     })
-    .catch((error) => {console.error('Error: ', error.message)});
-});
+    .catch(error => console.error("Error:", error));
+}
+
+function chistePagina (chiste) {
+    jokeList.innerHTML += `
+        <li>
+            ${chiste}
+        </li>`
+    }
+
+function chisteStorage (chiste) {
+    const chistes = JSON.parse (localStorage.getItem('chistesChuck')) || [];
+    chistes.push(chiste);
+    localStorage.setItem('chistesChuck', JSON.stringify(chistes));
+}
+
+function cargarChisteStorage () {
+    const chistesGuardados = JSON.parse (localStorage.getItem('chistesChuck')) || [];
+    chistesGuardados.forEach(element => {
+       chistePagina (element)        
+    });
+}
+
+function borrarChistes () {
+    localStorage.clear();
+    jokeList.innerHTML = '';
+    }
+
+fetchJoke.addEventListener ('click', fetchChiste)
+borrar.addEventListener ('click', borrarChistes)
+
+cargarChisteStorage ()
+
+console.log(localStorage.getItem('chistesChuck'))
